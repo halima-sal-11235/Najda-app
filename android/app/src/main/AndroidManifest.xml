@@ -2,6 +2,23 @@
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 <uses-permission android:name="android.permission.INTERNET"/>
+<!-- Core Permissions -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <queries>
+     <intent>
+    <action android:name="android.speech.RecognitionService"/>
+     </intent>
+    </queries>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" /> <!-- or SENSORS -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    
+    <!-- Full Screen Intent & Lock Screen Permissions -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="najda"
         android:name="${applicationName}"
@@ -33,6 +50,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            <!-- 2. ADD YOUR NEW SERVICE HERE -->
+        <service 
+            android:name=".CrashDetectionService" 
+            android:foregroundServiceType="health" 
+            android:exported="false" />
+
+
+        <!-- 3. ADD YOUR NEW SECOND ACTIVITY HERE -->
+        <activity
+            android:name=".CameraEmergencyActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleInstance" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

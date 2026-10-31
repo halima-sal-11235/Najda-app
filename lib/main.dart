@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/theme.dart';
+import 'screens/auth/auth_screen.dart';
+import 'screens/home/home_screen.dart';
+
 
 // ---------------------------------------------------------------------------
 // CONFIG: use the public "anon" key only, never the service role key
 // ---------------------------------------------------------------------------
-const supabaseUrl = 'https://lzrqbhunmqeiuehmvkop.supabase.co/rest/v1/';
+const supabaseUrl = 'https://lzrqbhunmqeiuehmvkop.supabase.co';
 const supabaseAnonKey =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6cnFiaHVubXFlaXVlaG12a29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMDMwMjksImV4cCI6MjEwODg3OTAyOX0.-EjcGpfG8-50g8A1-votOK4HKAfxYkkpuJJvg4Rdp_o';
 
@@ -31,15 +36,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Accident Alert',
+      title: 'Najda',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.red),
+      theme: buildTheme(),
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar'), Locale('fr'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: StreamBuilder<AuthState>(
         stream: supabase.auth.onAuthStateChange,
         builder: (context, snapshot) {
           final session =
               snapshot.data?.session ?? supabase.auth.currentSession;
-          return session == null ? const AuthScreen() : const HomeScreen();
+          return session == null ? const AuthScreen() : HomeScreen();
         },
       ),
     );
@@ -208,7 +220,13 @@ class _AuthScreenState extends State<AuthScreen> {
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 children: [
-                  const Icon(Icons.shield, size: 72, color: Colors.red),
+                  //const Icon(Icons.shield, size: 72, color: Colors.red),
+                  Image.asset(
+  'assets/logonajda.png',
+  width: 96,
+  height: 96,
+  fit: BoxFit.contain,
+),   
                   const SizedBox(height: 8),
                   Text(
                     _isSignUp ? 'Create an account' : 'Sign in',
@@ -290,101 +308,101 @@ class _AuthScreenState extends State<AuthScreen> {
 // ---------------------------------------------------------------------------
 // SCREEN 2: home with the "Simulate crash" button
 // ---------------------------------------------------------------------------
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+//   @override
+//   State<HomeScreen> createState() => _HomeScreenState();
+// }
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool _busy = false;
-  String? _lastAlertId;
+// class _HomeScreenState extends State<HomeScreen> {
+//   bool _busy = false;
+//   String? _lastAlertId;
 
-  Future<void> _simulateCrash() async {
-    setState(() => _busy = true);
-    try {
-      final id = await createAlert(impactG: 6.2, speedBeforeKmh: 70);
-      if (!mounted) return;
-      setState(() => _lastAlertId = id);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Alert created')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${errorText(e)}')));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+//   Future<void> _simulateCrash() async {
+//     setState(() => _busy = true);
+//     try {
+//       final id = await createAlert(impactG: 6.2, speedBeforeKmh: 70);
+//       if (!mounted) return;
+//       setState(() => _lastAlertId = id);
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(const SnackBar(content: Text('Alert created')));
+//     } catch (e) {
+//       if (!mounted) return;
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(SnackBar(content: Text('Error: ${errorText(e)}')));
+//     } finally {
+//       if (mounted) setState(() => _busy = false);
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    final user = supabase.auth.currentUser;
-    final name =
-        (user?.userMetadata?['full_name'] as String?) ?? user?.email ?? '';
+//   @override
+//   Widget build(BuildContext context) {
+//     final user = supabase.auth.currentUser;
+//     final name =
+//         (user?.userMetadata?['full_name'] as String?) ?? user?.email ?? '';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Accident Alert'),
-        actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
-            onPressed: () => supabase.auth.signOut(),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Hello $name',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Protection status: inactive (detection comes in step 3)',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              height: 64,
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: _busy ? null : _simulateCrash,
-                icon: _busy
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.warning_amber_rounded),
-                label: const Text(
-                  'Simulate crash',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-            if (_lastAlertId != null) ...[
-              const SizedBox(height: 24),
-              Text(
-                'Last alert id:\n$_lastAlertId',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('Accident Alert'),
+//         actions: [
+//           IconButton(
+//             tooltip: 'Sign out',
+//             icon: const Icon(Icons.logout),
+//             onPressed: () => supabase.auth.signOut(),
+//           ),
+//         ],
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(24),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           crossAxisAlignment: CrossAxisAlignment.stretch,
+//           children: [
+//             Text(
+//               'Hello $name',
+//               style: Theme.of(context).textTheme.titleLarge,
+//               textAlign: TextAlign.center,
+//             ),
+//             const SizedBox(height: 8),
+//             const Text(
+//               'Protection status: inactive (detection comes in step 3)',
+//               textAlign: TextAlign.center,
+//             ),
+//             const SizedBox(height: 32),
+//             SizedBox(
+//               height: 64,
+//               child: FilledButton.icon(
+//                 style: FilledButton.styleFrom(backgroundColor: Colors.red),
+//                 onPressed: _busy ? null : _simulateCrash,
+//                 icon: _busy
+//                     ? const SizedBox(
+//                         width: 22,
+//                         height: 22,
+//                         child: CircularProgressIndicator(
+//                           strokeWidth: 2,
+//                           color: Colors.white,
+//                         ),
+//                       )
+//                     : const Icon(Icons.warning_amber_rounded),
+//                 label: const Text(
+//                   'Simulate crash',
+//                   style: TextStyle(fontSize: 18),
+//                 ),
+//               ),
+//             ),
+//             if (_lastAlertId != null) ...[
+//               const SizedBox(height: 24),
+//               Text(
+//                 'Last alert id:\n$_lastAlertId',
+//                 textAlign: TextAlign.center,
+//               ),
+//             ],
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
